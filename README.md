@@ -1,6 +1,9 @@
 [PouchDB](http://pouchdb.com/) – The Database that Syncs!
 =========
 
+## This is a fork specifically for one application im taking part in developing. It has 3 patches that master doesn't: A different checkpoint system to avoid starting over, it allows the user to set the timeout for the changes feed, and it fixes a bug if replication stalls on an attachment.
+
+
 [![Build Status](https://travis-ci.org/pouchdb/pouchdb.svg)](https://travis-ci.org/pouchdb/pouchdb)
 
 PouchDB is an open-source JavaScript database inspired by [Apache CouchDB](http://couchdb.apache.org/) that is designed to run well within the browser.
