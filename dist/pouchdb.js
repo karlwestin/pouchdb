@@ -8,10 +8,10 @@
 (function (process){
 "use strict";
 
-var utils = _dereq_(63);
+var utils = _dereq_(64);
 var merge = _dereq_(52);
 var errors = _dereq_(32);
-var EventEmitter = _dereq_(67).EventEmitter;
+var EventEmitter = _dereq_(68).EventEmitter;
 var upsert = _dereq_(42);
 var Changes = _dereq_(13);
 var Promise = utils.Promise;
@@ -835,8 +835,8 @@ AbstractPouchDB.prototype.destroy =
   });
 });
 
-}).call(this,_dereq_(68))
-},{"13":13,"26":26,"27":27,"32":32,"42":42,"52":52,"63":63,"67":67,"68":68}],2:[function(_dereq_,module,exports){
+}).call(this,_dereq_(69))
+},{"13":13,"26":26,"27":27,"32":32,"42":42,"52":52,"64":64,"68":68,"69":69}],2:[function(_dereq_,module,exports){
 (function (process){
 "use strict";
 
@@ -854,14 +854,14 @@ var binStringToBluffer =
   _dereq_(20);
 var b64StringToBluffer =
   _dereq_(18);
-var utils = _dereq_(63);
+var utils = _dereq_(64);
 var Promise = utils.Promise;
 var clone = utils.clone;
 var base64 = _dereq_(17);
 var btoa = base64.btoa;
 var atob = base64.atob;
 var errors = _dereq_(32);
-var log = _dereq_(69)('pouchdb:http');
+var log = _dereq_(70)('pouchdb:http');
 var isBrowser = typeof process === 'undefined' || process.browser;
 var createMultipart = _dereq_(35);
 
@@ -1385,7 +1385,7 @@ function HttpPouch(opts, callback) {
       url: url,
       processData: false,
       body: blob,
-      timeout: Math.max(60000, ajaxOpts.timeout || 0)
+      timeout: ajaxOpts.timeout || 60000
     };
     opts.headers['Content-Type'] = type;
     // Add the attachment
@@ -1605,7 +1605,6 @@ function HttpPouch(opts, callback) {
 
     if (typeof opts.keys !== 'undefined') {
 
-
       var keysAsString =
         'keys=' + encodeURIComponent(JSON.stringify(opts.keys));
       if (keysAsString.length + params.length + 1 <= MAX_URL_LENGTH) {
@@ -1646,7 +1645,7 @@ function HttpPouch(opts, callback) {
     var batchSize = 'batch_size' in opts ? opts.batch_size : CHANGES_BATCH_SIZE;
 
     opts = clone(opts);
-    opts.timeout = opts.timeout || Math.max(30 * 1000, ajaxOpts.timeout || 0);
+    opts.timeout = opts.timeout || ajaxOpts.timeout || 30 * 1000;
 
     // We give a 5 second buffer for CouchDB changes to respond with
     // an ok timeout
@@ -1754,7 +1753,7 @@ function HttpPouch(opts, callback) {
       }
 
       var paramStr = '?' + Object.keys(params).map(function (k) {
-        return k + '=' + params[k];
+        return k + '=' + encodeURIComponent(params[k]);
       }).join('&');
 
       // Set the options for the ajax call
@@ -1970,8 +1969,8 @@ HttpPouch.valid = function () {
 
 module.exports = HttpPouch;
 
-}).call(this,_dereq_(68))
-},{"17":17,"18":18,"20":20,"24":24,"32":32,"35":35,"63":63,"68":68,"69":69}],3:[function(_dereq_,module,exports){
+}).call(this,_dereq_(69))
+},{"17":17,"18":18,"20":20,"24":24,"32":32,"35":35,"64":64,"69":69,"70":70}],3:[function(_dereq_,module,exports){
 'use strict';
 
 var merge = _dereq_(52);
@@ -2159,7 +2158,8 @@ module.exports = idbAllDocs;
 },{"32":32,"52":52,"6":6,"8":8}],4:[function(_dereq_,module,exports){
 'use strict';
 
-var utils = _dereq_(63);
+var utils = _dereq_(64);
+
 var idbConstants = _dereq_(6);
 var DETECT_BLOB_SUPPORT_STORE = idbConstants.DETECT_BLOB_SUPPORT_STORE;
 
@@ -2220,10 +2220,11 @@ function checkBlobSupport(txn, idb) {
 }
 
 module.exports = checkBlobSupport;
-},{"6":6,"63":63}],5:[function(_dereq_,module,exports){
+
+},{"6":6,"64":64}],5:[function(_dereq_,module,exports){
 'use strict';
 
-var utils = _dereq_(63);
+var utils = _dereq_(64);
 var errors = _dereq_(32);
 var preprocessAttachments =
   _dereq_(29);
@@ -2586,7 +2587,7 @@ function idbBulkDocs(req, opts, api, idb, Changes, callback) {
 }
 
 module.exports = idbBulkDocs;
-},{"27":27,"29":29,"30":30,"32":32,"6":6,"63":63,"8":8}],6:[function(_dereq_,module,exports){
+},{"27":27,"29":29,"30":30,"32":32,"6":6,"64":64,"8":8}],6:[function(_dereq_,module,exports){
 'use strict';
 
 // IndexedDB requires a versioned database structure, so we use the
@@ -2617,7 +2618,7 @@ exports.DETECT_BLOB_SUPPORT_STORE = 'detect-blob-support';
 (function (process){
 'use strict';
 
-var utils = _dereq_(63);
+var utils = _dereq_(64);
 var merge = _dereq_(52);
 var isDeleted = _dereq_(26);
 var isLocalId = _dereq_(27);
@@ -3546,7 +3547,11 @@ function init(api, opts, callback) {
     };
   };
 
-  req.onerror = idbError(callback);
+  req.onerror = function(e) {
+    var msg = 'Failed to open indexedDB, are you in private browsing mode?';
+    console.error(msg);
+    callback(errors.error(errors.IDB_ERROR, msg));
+  };
 
 }
 
@@ -3569,13 +3574,13 @@ IdbPouch.Changes = new utils.Changes();
 
 module.exports = IdbPouch;
 
-}).call(this,_dereq_(68))
-},{"26":26,"27":27,"3":3,"32":32,"4":4,"5":5,"52":52,"6":6,"63":63,"68":68,"8":8}],8:[function(_dereq_,module,exports){
+}).call(this,_dereq_(69))
+},{"26":26,"27":27,"3":3,"32":32,"4":4,"5":5,"52":52,"6":6,"64":64,"69":69,"8":8}],8:[function(_dereq_,module,exports){
 (function (process){
 'use strict';
 
 var errors = _dereq_(32);
-var utils = _dereq_(63);
+var utils = _dereq_(64);
 var base64 = _dereq_(17);
 var btoa = base64.btoa;
 var constants = _dereq_(6);
@@ -3818,11 +3823,11 @@ exports.openTransactionSafely = function (idb, stores, mode) {
     };
   }
 };
-}).call(this,_dereq_(68))
-},{"17":17,"18":18,"24":24,"32":32,"6":6,"63":63,"68":68}],9:[function(_dereq_,module,exports){
+}).call(this,_dereq_(69))
+},{"17":17,"18":18,"24":24,"32":32,"6":6,"64":64,"69":69}],9:[function(_dereq_,module,exports){
 'use strict';
 
-var utils = _dereq_(63);
+var utils = _dereq_(64);
 var errors = _dereq_(32);
 var preprocessAttachments =
   _dereq_(29);
@@ -4147,7 +4152,7 @@ function websqlBulkDocs(req, opts, api, db, Changes, callback) {
 
 module.exports = websqlBulkDocs;
 
-},{"10":10,"12":12,"27":27,"29":29,"30":30,"32":32,"63":63}],10:[function(_dereq_,module,exports){
+},{"10":10,"12":12,"27":27,"29":29,"30":30,"32":32,"64":64}],10:[function(_dereq_,module,exports){
 'use strict';
 
 function quote(str) {
@@ -4174,7 +4179,7 @@ exports.ATTACH_AND_SEQ_STORE = quote('attach-seq-store');
 },{}],11:[function(_dereq_,module,exports){
 'use strict';
 
-var utils = _dereq_(63);
+var utils = _dereq_(64);
 var merge = _dereq_(52);
 var isDeleted = _dereq_(26);
 var isLocalId = _dereq_(27);
@@ -5183,10 +5188,10 @@ WebSqlPouch.Changes = new utils.Changes();
 
 module.exports = WebSqlPouch;
 
-},{"10":10,"12":12,"20":20,"26":26,"27":27,"32":32,"37":37,"52":52,"63":63,"9":9}],12:[function(_dereq_,module,exports){
+},{"10":10,"12":12,"20":20,"26":26,"27":27,"32":32,"37":37,"52":52,"64":64,"9":9}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var utils = _dereq_(63);
+var utils = _dereq_(64);
 var errors = _dereq_(32);
 
 var websqlConstants = _dereq_(10);
@@ -5412,13 +5417,13 @@ module.exports = {
   openDB: openDB,
   valid: valid
 };
-},{"10":10,"32":32,"63":63}],13:[function(_dereq_,module,exports){
+},{"10":10,"32":32,"64":64}],13:[function(_dereq_,module,exports){
 'use strict';
-var utils = _dereq_(63);
+var utils = _dereq_(64);
 var isDeleted = _dereq_(26);
 var merge = _dereq_(52);
 var errors = _dereq_(32);
-var EE = _dereq_(67).EventEmitter;
+var EE = _dereq_(68).EventEmitter;
 var evalFilter = _dereq_(44);
 var evalView = _dereq_(45);
 module.exports = Changes;
@@ -5686,14 +5691,16 @@ Changes.prototype.filterChanges = function (opts) {
   }
 };
 
-},{"26":26,"32":32,"44":44,"45":45,"52":52,"63":63,"67":67}],14:[function(_dereq_,module,exports){
+},{"26":26,"32":32,"44":44,"45":45,"52":52,"64":64,"68":68}],14:[function(_dereq_,module,exports){
 (function (process,global){
 /*globals cordova */
 "use strict";
 
+var debug = _dereq_(70);
+
 var Adapter = _dereq_(1);
-var utils = _dereq_(63);
-var TaskQueue = _dereq_(62);
+var utils = _dereq_(64);
+var TaskQueue = _dereq_(63);
 var Promise = utils.Promise;
 
 function defaultCallback(err) {
@@ -5762,6 +5769,8 @@ function PouchDB(name, opts, callback) {
         }
         opts.adapter = opts.adapter || backend.adapter;
         self._adapter = opts.adapter;
+        debug('pouchdb:adapter')('Picked adapter: ' + opts.adapter);
+
         self._db_name = originalName;
         if (!PouchDB.adapters[opts.adapter]) {
           error = new Error('Adapter is missing');
@@ -5845,12 +5854,12 @@ function PouchDB(name, opts, callback) {
   self["catch"] = promise["catch"].bind(promise);
 }
 
-PouchDB.debug = _dereq_(69);
+PouchDB.debug = debug;
 
 module.exports = PouchDB;
 
-}).call(this,_dereq_(68),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"1":1,"62":62,"63":63,"68":68,"69":69}],15:[function(_dereq_,module,exports){
+}).call(this,_dereq_(69),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"1":1,"63":63,"64":64,"69":69,"70":70}],15:[function(_dereq_,module,exports){
 (function (process){
 "use strict";
 
@@ -5858,7 +5867,7 @@ var request = _dereq_(40);
 
 var buffer = _dereq_(22);
 var errors = _dereq_(32);
-var utils = _dereq_(63);
+var utils = _dereq_(64);
 var isBrowser = typeof process === 'undefined' || process.browser;
 
 function ajax(options, adapterCallback) {
@@ -5983,9 +5992,12 @@ function ajax(options, adapterCallback) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       onSuccess(data, response, callback);
     } else {
-      if (options.binary && data.length) {
+      try {
+        // See if we received an error message from the server
+        // If the connection was interrupted, the data might be nothing
+        // that's why we have the try/catch
         data = JSON.parse(data.toString());
-      }
+      } catch(e) {}
       error = errors.generateErrorFromResponse(data);
       error.status = response.statusCode;
       callback(error);
@@ -5995,8 +6007,8 @@ function ajax(options, adapterCallback) {
 
 module.exports = ajax;
 
-}).call(this,_dereq_(68))
-},{"22":22,"32":32,"40":40,"63":63,"68":68}],16:[function(_dereq_,module,exports){
+}).call(this,_dereq_(69))
+},{"22":22,"32":32,"40":40,"64":64,"69":69}],16:[function(_dereq_,module,exports){
 'use strict';
 
 //Can't find original post, but this is close
@@ -6061,8 +6073,8 @@ if (isBrowser) {
     return typedBuffer(b64, 'base64', type);
   };
 }
-}).call(this,_dereq_(68))
-},{"17":17,"20":20,"25":25,"68":68}],19:[function(_dereq_,module,exports){
+}).call(this,_dereq_(69))
+},{"17":17,"20":20,"25":25,"69":69}],19:[function(_dereq_,module,exports){
 'use strict';
 
 // From http://stackoverflow.com/questions/14967647/ (continues on next line)
@@ -6095,8 +6107,8 @@ if (isBrowser) {
     return typedBuffer(binString, 'binary', type);
   };
 }
-}).call(this,_dereq_(68))
-},{"19":19,"21":21,"25":25,"68":68}],21:[function(_dereq_,module,exports){
+}).call(this,_dereq_(69))
+},{"19":19,"21":21,"25":25,"69":69}],21:[function(_dereq_,module,exports){
 (function (global){
 "use strict";
 
@@ -6499,7 +6511,7 @@ var updateDoc = _dereq_(31);
 var isDeleted = _dereq_(26);
 var isLocalId = _dereq_(27);
 
-var collections = _dereq_(93);
+var collections = _dereq_(94);
 var Map = collections.Map;
 
 function processDocs(docInfos, api, fetchedDocs, tx, results, writeDoc, opts,
@@ -6589,7 +6601,7 @@ function processDocs(docInfos, api, fetchedDocs, tx, results, writeDoc, opts,
 }
 
 module.exports = processDocs;
-},{"26":26,"27":27,"31":31,"32":32,"52":52,"93":93}],31:[function(_dereq_,module,exports){
+},{"26":26,"27":27,"31":31,"32":32,"52":52,"94":94}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var merge = _dereq_(52);
@@ -6665,7 +6677,7 @@ module.exports = updateDoc;
 },{"26":26,"28":28,"32":32,"52":52}],32:[function(_dereq_,module,exports){
 "use strict";
 
-var inherits = _dereq_(72);
+var inherits = _dereq_(73);
 inherits(PouchError, Error);
 
 function PouchError(opts) {
@@ -6924,7 +6936,7 @@ exports.generateErrorFromResponse = function (res) {
   return error;
 };
 
-},{"72":72}],33:[function(_dereq_,module,exports){
+},{"73":73}],33:[function(_dereq_,module,exports){
 (function (process,global){
 'use strict';
 
@@ -6937,15 +6949,15 @@ function explain404(str) {
 }
 
 module.exports = explain404;
-}).call(this,_dereq_(68),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"68":68}],34:[function(_dereq_,module,exports){
+}).call(this,_dereq_(69),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"69":69}],34:[function(_dereq_,module,exports){
 (function (process,global){
 'use strict';
 
 var toPromise = _dereq_(41);
 var base64 = _dereq_(17);
-var crypto = _dereq_(66);
-var Md5 = _dereq_(96);
+var crypto = _dereq_(67);
+var Md5 = _dereq_(97);
 var setImmediateShim = global.setImmediate || global.setTimeout;
 var MD5_CHUNK_SIZE = 32768;
 
@@ -7017,8 +7029,8 @@ module.exports = toPromise(function (data, callback) {
   loadNextChunk();
 });
 
-}).call(this,_dereq_(68),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"17":17,"41":41,"66":66,"68":68,"96":96}],35:[function(_dereq_,module,exports){
+}).call(this,_dereq_(69),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"17":17,"41":41,"67":67,"69":69,"97":97}],35:[function(_dereq_,module,exports){
 (function (process){
 'use strict';
 
@@ -7033,7 +7045,7 @@ var atob = base64.atob;
 var uuid = _dereq_(43);
 var createBlob = _dereq_(21);
 var binaryStringToArrayBuffer = _dereq_(19);
-var utils = _dereq_(63);
+var utils = _dereq_(64);
 var clone = utils.clone;
 var isBrowser = typeof process === 'undefined' || process.browser;
 var buffer = _dereq_(22);
@@ -7099,11 +7111,11 @@ function createMultipart(doc) {
 
 module.exports = createMultipart;
 
-}).call(this,_dereq_(68))
-},{"17":17,"19":19,"21":21,"22":22,"43":43,"63":63,"68":68}],36:[function(_dereq_,module,exports){
+}).call(this,_dereq_(69))
+},{"17":17,"19":19,"21":21,"22":22,"43":43,"64":64,"69":69}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var getArguments = _dereq_(65);
+var getArguments = _dereq_(66);
 
 function once(fun) {
   var called = false;
@@ -7118,7 +7130,7 @@ function once(fun) {
 }
 
 module.exports = once;
-},{"65":65}],37:[function(_dereq_,module,exports){
+},{"66":66}],37:[function(_dereq_,module,exports){
 'use strict';
 
 //
@@ -7238,15 +7250,15 @@ module.exports = parseUri;
 if (typeof Promise === 'function') {
   module.exports = Promise;
 } else {
-  module.exports = _dereq_(76);
+  module.exports = _dereq_(77);
 }
-},{"76":76}],40:[function(_dereq_,module,exports){
+},{"77":77}],40:[function(_dereq_,module,exports){
 /* global fetch */
 /* global Headers */
 'use strict';
 
 var createBlob = _dereq_(21);
-var utils = _dereq_(63);
+var utils = _dereq_(64);
 var readAsArrayBuffer = _dereq_(23);
 
 function wrappedFetch() {
@@ -7363,15 +7375,6 @@ function xhRequest(options, callback) {
     xhr = new XMLHttpRequest();
   }
 
-  // cache-buster, specifically designed to work around IE's aggressive caching
-  // see http://www.dashbay.com/2011/05/internet-explorer-caches-ajax/
-  // Also Safari caches POSTs, so we need to cache-bust those too.
-  if ((options.method === 'POST' || options.method === 'GET') &&
-      !options.cache) {
-    var hasArgs = options.url.indexOf('?') !== -1;
-    options.url += (hasArgs ? '&' : '?') + '_nonce=' + Date.now();
-  }
-
   xhr.open(options.method, options.url);
   xhr.withCredentials = true;
 
@@ -7476,12 +7479,12 @@ module.exports = function(options, callback) {
   }
 };
 
-},{"21":21,"23":23,"63":63}],41:[function(_dereq_,module,exports){
+},{"21":21,"23":23,"64":64}],41:[function(_dereq_,module,exports){
 (function (process){
 'use strict';
 
 var Promise = _dereq_(39);
-var getArguments = _dereq_(65);
+var getArguments = _dereq_(66);
 var once = _dereq_(36);
 
 function toPromise(func) {
@@ -7536,17 +7539,17 @@ function toPromise(func) {
 }
 
 module.exports = toPromise;
-}).call(this,_dereq_(68))
-},{"36":36,"39":39,"65":65,"68":68}],42:[function(_dereq_,module,exports){
+}).call(this,_dereq_(69))
+},{"36":36,"39":39,"66":66,"69":69}],42:[function(_dereq_,module,exports){
 'use strict';
 
-var upsert = _dereq_(95).upsert;
+var upsert = _dereq_(96).upsert;
 
 module.exports = function (db, doc, diffFun, cb) {
   return upsert.call(db, doc, diffFun, cb);
 };
 
-},{"95":95}],43:[function(_dereq_,module,exports){
+},{"96":96}],43:[function(_dereq_,module,exports){
 "use strict";
 
 // BEGIN Math.uuid.js
@@ -7757,7 +7760,7 @@ module.exports = function (func, emit, sum, log, isArray, toJSON) {
 'use strict';
 
 var b64ToBluffer = _dereq_(18);
-var pouchCollate = _dereq_(91);
+var pouchCollate = _dereq_(92);
 var TaskQueue = _dereq_(49);
 var collate = pouchCollate.collate;
 var toIndexableString = pouchCollate.toIndexableString;
@@ -8655,8 +8658,8 @@ function BuiltInError(message) {
 }
 
 utils.inherits(BuiltInError, Error);
-}).call(this,_dereq_(68))
-},{"18":18,"46":46,"47":47,"49":49,"51":51,"68":68,"91":91}],49:[function(_dereq_,module,exports){
+}).call(this,_dereq_(69))
+},{"18":18,"46":46,"47":47,"49":49,"51":51,"69":69,"92":92}],49:[function(_dereq_,module,exports){
 'use strict';
 /*
  * Simple task queue to sequentialize actions. Assumes
@@ -8685,24 +8688,24 @@ module.exports = TaskQueue;
 },{"51":51}],50:[function(_dereq_,module,exports){
 'use strict';
 
-var upsert = _dereq_(95).upsert;
+var upsert = _dereq_(96).upsert;
 
 module.exports = function (db, doc, diffFun) {
   return upsert.apply(db, [doc, diffFun]);
 };
-},{"95":95}],51:[function(_dereq_,module,exports){
+},{"96":96}],51:[function(_dereq_,module,exports){
 (function (process,global){
 'use strict';
 /* istanbul ignore if */
 if (typeof global.Promise === 'function') {
   exports.Promise = global.Promise;
 } else {
-  exports.Promise = _dereq_(76);
+  exports.Promise = _dereq_(77);
 }
 
-exports.inherits = _dereq_(72);
-exports.extend = _dereq_(94);
-var argsarray = _dereq_(65);
+exports.inherits = _dereq_(73);
+exports.extend = _dereq_(95);
+var argsarray = _dereq_(66);
 
 exports.promisedCallback = function (promise, callback) {
   if (callback) {
@@ -8787,8 +8790,8 @@ exports.uniq = function (arr) {
   return output;
 };
 
-var crypto = _dereq_(66);
-var Md5 = _dereq_(96);
+var crypto = _dereq_(67);
+var Md5 = _dereq_(97);
 
 exports.MD5 = function (string) {
   /* istanbul ignore else */
@@ -8798,10 +8801,10 @@ exports.MD5 = function (string) {
     return Md5.hash(string);
   }
 };
-}).call(this,_dereq_(68),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"65":65,"66":66,"68":68,"72":72,"76":76,"94":94,"96":96}],52:[function(_dereq_,module,exports){
+}).call(this,_dereq_(69),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"66":66,"67":67,"69":69,"73":73,"77":77,"95":95,"97":97}],52:[function(_dereq_,module,exports){
 'use strict';
-var extend = _dereq_(94);
+var extend = _dereq_(95);
 
 
 // for a better overview of what this is doing, read:
@@ -9101,7 +9104,28 @@ PouchMerge.rootToLeaf = function (tree) {
 
 module.exports = PouchMerge;
 
-},{"94":94}],53:[function(_dereq_,module,exports){
+},{"95":95}],53:[function(_dereq_,module,exports){
+(function (process){
+'use strict';
+
+var ajax = _dereq_(15);
+
+module.exports = function(opts, callback) {
+
+  // cache-buster, specifically designed to work around IE's aggressive caching
+  // see http://www.dashbay.com/2011/05/internet-explorer-caches-ajax/
+  // Also Safari caches POSTs, so we need to cache-bust those too.
+  if (process.browser &&
+      (opts.method === 'POST' || opts.method === 'GET') && !opts.cache) {
+    var hasArgs = opts.url.indexOf('?') !== -1;
+    opts.url += (hasArgs ? '&' : '?') + '_nonce=' + Date.now();
+  }
+
+  return ajax(opts, callback);
+};
+
+}).call(this,_dereq_(69))
+},{"15":15,"69":69}],54:[function(_dereq_,module,exports){
 'use strict';
 
 var STARTING_BACK_OFF = 0;
@@ -9155,12 +9179,12 @@ function backOff(opts, returnValue, error, callback) {
 }
 
 module.exports = backOff;
-},{}],54:[function(_dereq_,module,exports){
+},{}],55:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_(39);
 var explain404 = _dereq_(33);
-var pouchCollate = _dereq_(91);
+var pouchCollate = _dereq_(92);
 var collate = pouchCollate.collate;
 
 var REPLICATION_ID_VERSION = 2;
@@ -9385,19 +9409,39 @@ function hasSessionId(sessionId, history) {
 
 module.exports = Checkpointer;
 
-},{"33":33,"39":39,"91":91}],55:[function(_dereq_,module,exports){
+},{"33":33,"39":39,"92":92}],56:[function(_dereq_,module,exports){
 'use strict';
 
 var md5 = _dereq_(34);
+var collate = _dereq_(92).collate;
+
+function sortObjectPropertiesByKey(queryParams) {
+  return Object.keys(queryParams).sort(collate).reduce(function (result, key) {
+    result[key] = queryParams[key];
+    return result;
+  }, {});
+}
 
 // TODO: check CouchDB's replication id generation
 // Generate a unique id particular to this replication
 function genReplicationId(src, target, opts) {
+  var docIds = opts.doc_ids ? opts.doc_ids.sort(collate) : '';
   var filterFun = opts.filter ? opts.filter.toString() : '';
+  var queryParams = '';
+  var filterViewName =  '';
+
+  if (opts.filter && opts.query_params) {
+    queryParams = JSON.stringify(sortObjectPropertiesByKey(opts.query_params));
+  }
+
+  if (opts.filter && opts.filter === '_view') {
+    filterViewName = opts.view.toString();
+  }
+
   return src.id().then(function (src_id) {
     return target.id().then(function (target_id) {
-      var queryData = src_id + target_id + filterFun +
-        JSON.stringify(opts.query_params) + opts.doc_ids;
+      var queryData = src_id + target_id + filterFun + filterViewName +
+        queryParams + docIds;
       return md5(queryData).then(function (md5sum) {
         // can't use straight-up md5 alphabet, because
         // the char '/' is interpreted as being for attachments,
@@ -9410,10 +9454,11 @@ function genReplicationId(src, target, opts) {
 }
 
 module.exports = genReplicationId;
-},{"34":34}],56:[function(_dereq_,module,exports){
+
+},{"34":34,"92":92}],57:[function(_dereq_,module,exports){
 'use strict';
 
-var utils = _dereq_(63);
+var utils = _dereq_(64);
 var clone = utils.clone;
 var Promise = utils.Promise;
 
@@ -9524,12 +9569,12 @@ function getDocs(src, diffs, state) {
 }
 
 module.exports = getDocs;
-},{"63":63}],57:[function(_dereq_,module,exports){
+},{"64":64}],58:[function(_dereq_,module,exports){
 'use strict';
 
-var utils = _dereq_(63);
-var replicate = _dereq_(58);
-var Replication = _dereq_(59);
+var utils = _dereq_(64);
+var replicate = _dereq_(59);
+var Replication = _dereq_(60);
 
 function toPouch(db, opts) {
   var PouchConstructor = opts.PouchConstructor;
@@ -9567,14 +9612,14 @@ module.exports = {
   replicate : replicateWrapper,
   toPouch: toPouch
 };
-},{"58":58,"59":59,"63":63}],58:[function(_dereq_,module,exports){
+},{"59":59,"60":60,"64":64}],59:[function(_dereq_,module,exports){
 'use strict';
 
-var utils = _dereq_(63);
-var Checkpointer = _dereq_(54);
-var backOff = _dereq_(53);
-var genReplicationId = _dereq_(55);
-var getDocs = _dereq_(56);
+var utils = _dereq_(64);
+var Checkpointer = _dereq_(55);
+var backOff = _dereq_(54);
+var genReplicationId = _dereq_(56);
+var getDocs = _dereq_(57);
 
 function replicate(src, target, opts, returnValue, result) {
   var batches = [];               // list of batches to be processed
@@ -9998,11 +10043,11 @@ function replicate(src, target, opts, returnValue, result) {
 
 module.exports = replicate;
 
-},{"53":53,"54":54,"55":55,"56":56,"63":63}],59:[function(_dereq_,module,exports){
+},{"54":54,"55":55,"56":56,"57":57,"64":64}],60:[function(_dereq_,module,exports){
 'use strict';
 
-var utils = _dereq_(63);
-var EE = _dereq_(67).EventEmitter;
+var utils = _dereq_(64);
+var EE = _dereq_(68).EventEmitter;
 var Promise = utils.Promise;
 
 // We create a basic promise so the caller can cancel the replication possibly
@@ -10054,12 +10099,12 @@ Replication.prototype.ready = function (src, target) {
 };
 
 module.exports = Replication;
-},{"63":63,"67":67}],60:[function(_dereq_,module,exports){
+},{"64":64,"68":68}],61:[function(_dereq_,module,exports){
 "use strict";
 
 var PouchDB = _dereq_(14);
-var utils = _dereq_(63);
-var EventEmitter = _dereq_(67).EventEmitter;
+var utils = _dereq_(64);
+var EventEmitter = _dereq_(68).EventEmitter;
 PouchDB.adapters = {};
 PouchDB.preferredAdapters = [];
 
@@ -10218,13 +10263,13 @@ PouchDB.defaults = function (defaultOpts) {
 
 module.exports = PouchDB;
 
-},{"14":14,"63":63,"67":67}],61:[function(_dereq_,module,exports){
+},{"14":14,"64":64,"68":68}],62:[function(_dereq_,module,exports){
 'use strict';
 
-var utils = _dereq_(63);
-var replication = _dereq_(57);
+var utils = _dereq_(64);
+var replication = _dereq_(58);
 var replicate = replication.replicate;
-var EE = _dereq_(67).EventEmitter;
+var EE = _dereq_(68).EventEmitter;
 
 utils.inherits(Sync, EE);
 module.exports = sync;
@@ -10404,7 +10449,7 @@ Sync.prototype.cancel = function () {
   }
 };
 
-},{"57":57,"63":63,"67":67}],62:[function(_dereq_,module,exports){
+},{"58":58,"64":64,"68":68}],63:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = TaskQueue;
@@ -10474,18 +10519,17 @@ TaskQueue.prototype.addTask = function (name, parameters) {
   }
 };
 
-},{}],63:[function(_dereq_,module,exports){
-(function (process){
+},{}],64:[function(_dereq_,module,exports){
 /*jshint strict: false */
 /*global chrome */
 var merge = _dereq_(52);
-exports.extend = _dereq_(94);
-exports.ajax = _dereq_(15);
+exports.extend = _dereq_(95);
+exports.ajax = _dereq_(53);
 exports.createBlob = _dereq_(21); // TODO: don't export this
 exports.uuid = _dereq_(43);
-exports.getArguments = _dereq_(65);
-var EventEmitter = _dereq_(67).EventEmitter;
-var collections = _dereq_(93);
+exports.getArguments = _dereq_(66);
+var EventEmitter = _dereq_(68).EventEmitter;
+var collections = _dereq_(94);
 exports.Map = collections.Map;
 exports.Set = collections.Set;
 var parseDoc = _dereq_(28);
@@ -10531,7 +10575,7 @@ function pick(obj, arr) {
 }
 exports.pick = pick;
 
-exports.inherits = _dereq_(72);
+exports.inherits = _dereq_(73);
 
 function isChromeApp() {
   return (typeof chrome !== "undefined" &&
@@ -10659,9 +10703,9 @@ Changes.prototype.addListener = function (dbName, id, db, opts) {
       }
     }).on('complete', function () {
       if (inprogress === 'waiting') {
-        process.nextTick(function () {
-          self.notify(dbName);
-        });
+        setTimeout(function(){
+          eventFunction();
+        },0);
       }
       inprogress = false;
     }).on('error', function () {
@@ -10701,7 +10745,7 @@ exports.once = _dereq_(36);
 exports.toPromise = _dereq_(41);
 
 exports.adapterFun = function (name, callback) {
-  var log = _dereq_(69)('pouchdb:api');
+  var log = _dereq_(70)('pouchdb:api');
 
   function logApiCall(self, name, args) {
     if (!log.enabled) {
@@ -10857,7 +10901,7 @@ exports.compactTree = function compactTree(metadata) {
   return revs;
 };
 
-var vuvuzela = _dereq_(97);
+var vuvuzela = _dereq_(98);
 
 exports.safeJsonParse = function safeJsonParse(str) {
   try {
@@ -10894,11 +10938,10 @@ exports.normalizeDesignDocFunctionName = function (s) {
   return normalized ? normalized.join('/') : null;
 };
 
-}).call(this,_dereq_(68))
-},{"15":15,"17":17,"20":20,"21":21,"28":28,"33":33,"36":36,"38":38,"39":39,"41":41,"43":43,"52":52,"65":65,"67":67,"68":68,"69":69,"72":72,"93":93,"94":94,"97":97}],64:[function(_dereq_,module,exports){
+},{"17":17,"20":20,"21":21,"28":28,"33":33,"36":36,"38":38,"39":39,"41":41,"43":43,"52":52,"53":53,"66":66,"68":68,"70":70,"73":73,"94":94,"95":95,"98":98}],65:[function(_dereq_,module,exports){
 module.exports = "3.6.1-prerelease";
 
-},{}],65:[function(_dereq_,module,exports){
+},{}],66:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = argsArray;
@@ -10918,9 +10961,9 @@ function argsArray(fun) {
     }
   };
 }
-},{}],66:[function(_dereq_,module,exports){
-
 },{}],67:[function(_dereq_,module,exports){
+
+},{}],68:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -11223,7 +11266,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],68:[function(_dereq_,module,exports){
+},{}],69:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -11315,7 +11358,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],69:[function(_dereq_,module,exports){
+},{}],70:[function(_dereq_,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -11323,7 +11366,7 @@ process.umask = function() { return 0; };
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = _dereq_(70);
+exports = module.exports = _dereq_(71);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -11485,7 +11528,7 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"70":70}],70:[function(_dereq_,module,exports){
+},{"71":71}],71:[function(_dereq_,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -11499,7 +11542,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = _dereq_(71);
+exports.humanize = _dereq_(72);
 
 /**
  * The currently active debug mode names, and names to skip.
@@ -11684,7 +11727,7 @@ function coerce(val) {
   return val;
 }
 
-},{"71":71}],71:[function(_dereq_,module,exports){
+},{"72":72}],72:[function(_dereq_,module,exports){
 /**
  * Helpers.
  */
@@ -11811,7 +11854,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],72:[function(_dereq_,module,exports){
+},{}],73:[function(_dereq_,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -11836,19 +11879,19 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],73:[function(_dereq_,module,exports){
+},{}],74:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = INTERNAL;
 
 function INTERNAL() {}
-},{}],74:[function(_dereq_,module,exports){
+},{}],75:[function(_dereq_,module,exports){
 'use strict';
-var Promise = _dereq_(77);
-var reject = _dereq_(80);
-var resolve = _dereq_(81);
-var INTERNAL = _dereq_(73);
-var handlers = _dereq_(75);
+var Promise = _dereq_(78);
+var reject = _dereq_(81);
+var resolve = _dereq_(82);
+var INTERNAL = _dereq_(74);
+var handlers = _dereq_(76);
 module.exports = all;
 function all(iterable) {
   if (Object.prototype.toString.call(iterable) !== '[object Array]') {
@@ -11886,11 +11929,11 @@ function all(iterable) {
     }
   }
 }
-},{"73":73,"75":75,"77":77,"80":80,"81":81}],75:[function(_dereq_,module,exports){
+},{"74":74,"76":76,"78":78,"81":81,"82":82}],76:[function(_dereq_,module,exports){
 'use strict';
-var tryCatch = _dereq_(84);
-var resolveThenable = _dereq_(82);
-var states = _dereq_(83);
+var tryCatch = _dereq_(85);
+var resolveThenable = _dereq_(83);
+var states = _dereq_(84);
 
 exports.resolve = function (self, value) {
   var result = tryCatch(getThen, value);
@@ -11933,22 +11976,22 @@ function getThen(obj) {
   }
 }
 
-},{"82":82,"83":83,"84":84}],76:[function(_dereq_,module,exports){
-module.exports = exports = _dereq_(77);
+},{"83":83,"84":84,"85":85}],77:[function(_dereq_,module,exports){
+module.exports = exports = _dereq_(78);
 
-exports.resolve = _dereq_(81);
-exports.reject = _dereq_(80);
-exports.all = _dereq_(74);
-exports.race = _dereq_(79);
+exports.resolve = _dereq_(82);
+exports.reject = _dereq_(81);
+exports.all = _dereq_(75);
+exports.race = _dereq_(80);
 
-},{"74":74,"77":77,"79":79,"80":80,"81":81}],77:[function(_dereq_,module,exports){
+},{"75":75,"78":78,"80":80,"81":81,"82":82}],78:[function(_dereq_,module,exports){
 'use strict';
 
-var unwrap = _dereq_(85);
-var INTERNAL = _dereq_(73);
-var resolveThenable = _dereq_(82);
-var states = _dereq_(83);
-var QueueItem = _dereq_(78);
+var unwrap = _dereq_(86);
+var INTERNAL = _dereq_(74);
+var resolveThenable = _dereq_(83);
+var states = _dereq_(84);
+var QueueItem = _dereq_(79);
 
 module.exports = Promise;
 function Promise(resolver) {
@@ -11985,10 +12028,10 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
   return promise;
 };
 
-},{"73":73,"78":78,"82":82,"83":83,"85":85}],78:[function(_dereq_,module,exports){
+},{"74":74,"79":79,"83":83,"84":84,"86":86}],79:[function(_dereq_,module,exports){
 'use strict';
-var handlers = _dereq_(75);
-var unwrap = _dereq_(85);
+var handlers = _dereq_(76);
+var unwrap = _dereq_(86);
 
 module.exports = QueueItem;
 function QueueItem(promise, onFulfilled, onRejected) {
@@ -12015,13 +12058,13 @@ QueueItem.prototype.otherCallRejected = function (value) {
   unwrap(this.promise, this.onRejected, value);
 };
 
-},{"75":75,"85":85}],79:[function(_dereq_,module,exports){
+},{"76":76,"86":86}],80:[function(_dereq_,module,exports){
 'use strict';
-var Promise = _dereq_(77);
-var reject = _dereq_(80);
-var resolve = _dereq_(81);
-var INTERNAL = _dereq_(73);
-var handlers = _dereq_(75);
+var Promise = _dereq_(78);
+var reject = _dereq_(81);
+var resolve = _dereq_(82);
+var INTERNAL = _dereq_(74);
+var handlers = _dereq_(76);
 module.exports = race;
 function race(iterable) {
   if (Object.prototype.toString.call(iterable) !== '[object Array]') {
@@ -12056,24 +12099,24 @@ function race(iterable) {
   }
 }
 
-},{"73":73,"75":75,"77":77,"80":80,"81":81}],80:[function(_dereq_,module,exports){
+},{"74":74,"76":76,"78":78,"81":81,"82":82}],81:[function(_dereq_,module,exports){
 'use strict';
 
-var Promise = _dereq_(77);
-var INTERNAL = _dereq_(73);
-var handlers = _dereq_(75);
+var Promise = _dereq_(78);
+var INTERNAL = _dereq_(74);
+var handlers = _dereq_(76);
 module.exports = reject;
 
 function reject(reason) {
 	var promise = new Promise(INTERNAL);
 	return handlers.reject(promise, reason);
 }
-},{"73":73,"75":75,"77":77}],81:[function(_dereq_,module,exports){
+},{"74":74,"76":76,"78":78}],82:[function(_dereq_,module,exports){
 'use strict';
 
-var Promise = _dereq_(77);
-var INTERNAL = _dereq_(73);
-var handlers = _dereq_(75);
+var Promise = _dereq_(78);
+var INTERNAL = _dereq_(74);
+var handlers = _dereq_(76);
 module.exports = resolve;
 
 var FALSE = handlers.resolve(new Promise(INTERNAL), false);
@@ -12103,10 +12146,10 @@ function resolve(value) {
       return EMPTYSTRING;
   }
 }
-},{"73":73,"75":75,"77":77}],82:[function(_dereq_,module,exports){
+},{"74":74,"76":76,"78":78}],83:[function(_dereq_,module,exports){
 'use strict';
-var handlers = _dereq_(75);
-var tryCatch = _dereq_(84);
+var handlers = _dereq_(76);
+var tryCatch = _dereq_(85);
 function safelyResolveThenable(self, thenable) {
   // Either fulfill, reject or reject with error
   var called = false;
@@ -12136,14 +12179,14 @@ function safelyResolveThenable(self, thenable) {
   }
 }
 exports.safely = safelyResolveThenable;
-},{"75":75,"84":84}],83:[function(_dereq_,module,exports){
+},{"76":76,"85":85}],84:[function(_dereq_,module,exports){
 // Lazy man's symbols for states
 
 exports.REJECTED = ['REJECTED'];
 exports.FULFILLED = ['FULFILLED'];
 exports.PENDING = ['PENDING'];
 
-},{}],84:[function(_dereq_,module,exports){
+},{}],85:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = tryCatch;
@@ -12159,11 +12202,11 @@ function tryCatch(func, value) {
   }
   return out;
 }
-},{}],85:[function(_dereq_,module,exports){
+},{}],86:[function(_dereq_,module,exports){
 'use strict';
 
-var immediate = _dereq_(86);
-var handlers = _dereq_(75);
+var immediate = _dereq_(87);
+var handlers = _dereq_(76);
 module.exports = unwrap;
 
 function unwrap(promise, func, value) {
@@ -12181,14 +12224,14 @@ function unwrap(promise, func, value) {
     }
   });
 }
-},{"75":75,"86":86}],86:[function(_dereq_,module,exports){
+},{"76":76,"87":87}],87:[function(_dereq_,module,exports){
 'use strict';
 var types = [
-  _dereq_(66),
-  _dereq_(88),
-  _dereq_(87),
+  _dereq_(67),
   _dereq_(89),
-  _dereq_(90)
+  _dereq_(88),
+  _dereq_(90),
+  _dereq_(91)
 ];
 var draining;
 var queue = [];
@@ -12223,7 +12266,7 @@ function immediate(task) {
     scheduleDrain();
   }
 }
-},{"66":66,"87":87,"88":88,"89":89,"90":90}],87:[function(_dereq_,module,exports){
+},{"67":67,"88":88,"89":89,"90":90,"91":91}],88:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -12244,7 +12287,7 @@ exports.install = function (func) {
   };
 };
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],88:[function(_dereq_,module,exports){
+},{}],89:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 //based off rsvp https://github.com/tildeio/rsvp.js
@@ -12269,7 +12312,7 @@ exports.install = function (handle) {
   };
 };
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],89:[function(_dereq_,module,exports){
+},{}],90:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -12296,7 +12339,7 @@ exports.install = function (handle) {
   };
 };
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],90:[function(_dereq_,module,exports){
+},{}],91:[function(_dereq_,module,exports){
 'use strict';
 exports.test = function () {
   return true;
@@ -12307,14 +12350,14 @@ exports.install = function (t) {
     setTimeout(t, 0);
   };
 };
-},{}],91:[function(_dereq_,module,exports){
+},{}],92:[function(_dereq_,module,exports){
 'use strict';
 
 var MIN_MAGNITUDE = -324; // verified by -Number.MIN_VALUE
 var MAGNITUDE_DIGITS = 3; // ditto
 var SEP = ''; // set to '_' for easier debugging 
 
-var utils = _dereq_(92);
+var utils = _dereq_(93);
 
 exports.collate = function (a, b) {
 
@@ -12662,7 +12705,7 @@ function numToIndexableString(num) {
   return result;
 }
 
-},{"92":92}],92:[function(_dereq_,module,exports){
+},{"93":93}],93:[function(_dereq_,module,exports){
 'use strict';
 
 function pad(str, padWith, upToLength) {
@@ -12733,7 +12776,7 @@ exports.intToDecimalForm = function (int) {
 
   return result;
 };
-},{}],93:[function(_dereq_,module,exports){
+},{}],94:[function(_dereq_,module,exports){
 'use strict';
 exports.Map = LazyMap; // TODO: use ES6 map
 exports.Set = LazySet; // TODO: use ES6 set
@@ -12805,7 +12848,7 @@ LazySet.prototype["delete"] = function (key) {
   return this.store["delete"](key);
 };
 
-},{}],94:[function(_dereq_,module,exports){
+},{}],95:[function(_dereq_,module,exports){
 "use strict";
 
 // Extends method
@@ -12986,7 +13029,7 @@ module.exports = extend;
 
 
 
-},{}],95:[function(_dereq_,module,exports){
+},{}],96:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -12995,7 +13038,7 @@ var PouchPromise;
 if (typeof window !== 'undefined' && window.PouchDB) {
   PouchPromise = window.PouchDB.utils.Promise;
 } else {
-  PouchPromise = typeof global.Promise === 'function' ? global.Promise : _dereq_(76);
+  PouchPromise = typeof global.Promise === 'function' ? global.Promise : _dereq_(77);
 }
 
 // this is essentially the "update sugar" function from daleharvey/pouchdb#1388
@@ -13093,7 +13136,7 @@ if (typeof window !== 'undefined' && window.PouchDB) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"76":76}],96:[function(_dereq_,module,exports){
+},{"77":77}],97:[function(_dereq_,module,exports){
 /*jshint bitwise:false*/
 /*global unescape*/
 
@@ -13694,7 +13737,7 @@ if (typeof window !== 'undefined' && window.PouchDB) {
     return SparkMD5;
 }));
 
-},{}],97:[function(_dereq_,module,exports){
+},{}],98:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -13869,20 +13912,20 @@ exports.parse = function (str) {
   }
 };
 
-},{}],98:[function(_dereq_,module,exports){
+},{}],99:[function(_dereq_,module,exports){
 (function (process){
 "use strict";
 
-var PouchDB = _dereq_(60);
+var PouchDB = _dereq_(61);
 
 module.exports = PouchDB;
 
-PouchDB.ajax = _dereq_(15);
-PouchDB.utils = _dereq_(63);
+PouchDB.ajax = _dereq_(53);
+PouchDB.utils = _dereq_(64);
 PouchDB.Errors = _dereq_(32);
-PouchDB.replicate = _dereq_(57).replicate;
-PouchDB.sync = _dereq_(61);
-PouchDB.version = _dereq_(64);
+PouchDB.replicate = _dereq_(58).replicate;
+PouchDB.sync = _dereq_(62);
+PouchDB.version = _dereq_(65);
 var httpAdapter = _dereq_(2);
 PouchDB.adapter('http', httpAdapter);
 PouchDB.adapter('https', httpAdapter);
@@ -13892,10 +13935,10 @@ PouchDB.adapter('websql', _dereq_(11), true);
 PouchDB.plugin(_dereq_(48));
 
 if (!process.browser) {
-  var ldbAdapter = _dereq_(66);
+  var ldbAdapter = _dereq_(67);
   PouchDB.adapter('leveldb', ldbAdapter, true);
 }
 
-}).call(this,_dereq_(68))
-},{"11":11,"15":15,"2":2,"32":32,"48":48,"57":57,"60":60,"61":61,"63":63,"64":64,"66":66,"68":68,"7":7}]},{},[98])(98)
+}).call(this,_dereq_(69))
+},{"11":11,"2":2,"32":32,"48":48,"53":53,"58":58,"61":61,"62":62,"64":64,"65":65,"67":67,"69":69,"7":7}]},{},[99])(99)
 });
